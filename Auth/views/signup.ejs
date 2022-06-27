@@ -1,0 +1,54 @@
+<%- include('partials/header'); -%>
+<form>
+    <h1>Sign up</h1>
+    <label for="email">Email</label>
+    <input type="text" name="email" required/>
+    <div class="email error"></div>
+    <label for="password">Password</label>
+    <input type="password" name="password" required/>
+    <div class="password error"></div>
+    <label for="tier">Choose Tier</label>
+    <select name="tier" id="tier">
+        <option value="Free">Free</option>
+        <option value="Professional">Professional</option>
+        <option value="Business">Business</option>
+    </select>
+    <br>
+    <br>
+    <button>Sign Up</button>
+</form>
+<a href="http://127.0.0.1:5000/">Go Back</a>
+<script>
+    const form = document.querySelector('form');
+    const emailError = document.querySelector('.email.error');
+    const passwordError = document.querySelector('.password.error');
+    form.addEventListener('submit',async (e) => {
+        e.preventDefault();
+        emailError.textContent = "";
+        passwordError.textContent = "";
+        const email = form.email.value;
+        const password = form.password.value;
+        const tier = form.tier.value;
+        console.log(email, password, tier);
+        try {
+            const res = await fetch('/signup', {
+                method: 'POST',
+                body: JSON.stringify({email, password, tier}),
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            if(data.errors) {
+                emailError.textContent = data.errors.email;
+                passwordError.textContent = data.errors.password;
+            }
+            if(data.user) {
+                console.log("sending data and loging in");
+                location.assign('http://127.0.0.1:5000/login');
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    });
+</script>
+<%- include('partials/footer'); -%>

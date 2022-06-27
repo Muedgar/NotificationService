@@ -1,0 +1,54 @@
+.statusDiv {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    height: 100px;
+}
+.tooManyRequests {
+    background-color: brown;
+    color: white;
+    font-size: 2em;
+    width: 200px;
+    height: 70;
+    box-shadow: 3px 3px solid #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.requestSuccess {
+    background-color: green;
+    color: white;
+    font-size: 2em;
+    width: 200px;
+    height: 70;
+    box-shadow: 3px 3px solid #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.resourceNotFound {
+    background-color: rgba(228, 211, 163, 0.589);
+    color: white;
+    font-size: 2em;
+    width: 200px;
+    height: 70;
+    box-shadow: 3px 3px solid #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.somethingWentWrong {
+    background-color: red;
+    color: white;
+    font-size: 2em;
+    width: 200px;
+    height: 70;
+    box-shadow: 3px 3px solid #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}

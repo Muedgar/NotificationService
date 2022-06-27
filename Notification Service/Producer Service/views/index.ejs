@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <style>
+        
+.tooManyRequests {
+    background-color: brown;
+    color: white;
+    width: 400px;
+    height: 70;
+    box-shadow: 3px 3px #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.requestSuccess {
+    background-color: green;
+    color: white;
+    width: 400px;
+    height: 70;
+    box-shadow: 3px 3px #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.resourceNotFound {
+    background-color: rgba(228, 211, 163, 0.589);
+    color: white;
+    width: 400px;
+    height: 70;
+    box-shadow: 3px 3px #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.somethingWentWrong {
+    background-color: red;
+    color: white;
+    width: 400px;
+    height: 70;
+    box-shadow: 3px 3px #333;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+h2 {
+    font-size: 1em;
+    height: 20px;
+    text-align: center;
+    padding-top: 5px;
+}
+    </style>
+</head>
+<body>
+        <div class="tooManyRequests">
+            <h2>Too many requests</h2>
+        </div>
+        <div class="requestSuccess">
+            <h2>Request successfully served</h2>
+        </div>
+        <div class="resourceNotFound">
+            <h2>Request resource not found</h2>
+        </div>
+        <div class="somethingWentWrong">
+            <h2>Something went wrong</h2>
+        </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 m-auto">
+                <h1 class="text-center display-4 my-4">Create Notifications Request</h1>
+                <form id="form1" action="" method="post">
+                    <div class="custom-file mb-3">
+                        <textarea name="message" id="message" cols="30" rows="10"></textarea>
+                        <input type="file" name="contacts" id="contacts" class="custom-file-input">
+                        <br>
+                        <br>
+                        <label for="file" class="custom-file-label">Upload Excel File With Emails and Phone Numbers To Send Notifications To.</label>
+                    </div>
+                    <input type="submit" value="Submit" class="btn btn-primary btn-block">
+                </form>
+                <form action="/logout" id="logout">
+                    <input type="submit" value="Log out" class="btn btn-primary btn-block">
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js" integrity="sha512-fQ6X8IIj+AvZyOG6HFXONC0xubDlH3+gbW+QgozYfs9Ra1iSSTLBv7qaLLhea6S62U9GHJjPyyWj5ivz7UJqCA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+       window.onload = () => {
+           document.querySelector(".tooManyRequests").style.display = "none";
+           document.querySelector(".requestSuccess").style.display = "none";
+           document.querySelector(".resourceNotFound").style.display = "none";
+           document.querySelector(".somethingWentWrong").style.display = "none";
+       }
+        document.getElementById("form1").addEventListener('submit',async (e)=> {
+            e.preventDefault();
+            const message = document.getElementById("message").value;
+            const contactsFormData = document.getElementById("contacts");
+            const contact = new FileReader();
+            contact.readAsArrayBuffer(contactsFormData.files[0]);
+           
+            contact.onload = async ()=> {
+                try {
+                    let data = await new Uint8Array(contact.result);
+                let arr = new Array();
+                const loadArray = () => {
+                    for(let i=0;i!=data.length;++i) arr[i] = String.fromCharCode(data[i]);
+                }
+                await loadArray();
+                let bstr = await arr.join("");
+                console.log("this is bstr")
+                console.log(bstr);
+                let workbook = await XLSX.read(bstr, {type:"binary"});
+                let first_sheet_name = await workbook.SheetNames[0];
+                let worksheet = await workbook.Sheets[first_sheet_name];
+                let contacts = await XLSX.utils.sheet_to_json(worksheet);
+                await console.log(typeof contacts);
+                console.log(contacts);
+try {
+               const ans =  await fetch('/upload', {
+                method: 'POST',
+                body: JSON.stringify({message, contacts}),
+                headers: {'Content-Type': 'application/json'}
+            }).then(response=>{
+                if(response.status == 429) {
+                    console.log("showing too many requests status");
+                    document.querySelector(".tooManyRequests").style.display = "block";
+                    document.querySelector(".requestSuccess").style.display = "none";
+                    document.querySelector(".resourceNotFound").style.display = "none";
+                    document.querySelector(".somethingWentWrong").style.display = "none";
+
+                    setTimeout(() => {
+                        document.querySelector(".tooManyRequests").style.display = "none";
+                    }, 3000);
+                }else if(response.status == 200) {
+                    console.log("showing request successfully served");
+                    document.querySelector(".tooManyRequests").style.display = "none";
+                    document.querySelector(".requestSuccess").style.display = "block";
+                    document.querySelector(".resourceNotFound").style.display = "none";
+                    document.querySelector(".somethingWentWrong").style.display = "none";
+                    setTimeout(() => {
+                        document.querySelector(".requestSuccess").style.display = "none";
+                    }, 3000);
+                    
+                }else if(response.status == 404) {
+                    console.log("showing request resource not found");
+                    document.querySelector(".tooManyRequests").style.display = "none";
+                    document.querySelector(".requestSuccess").style.display = "none";
+                    document.querySelector(".resourceNotFound").style.display = "block";
+                    document.querySelector(".somethingWentWrong").style.display = "none";
+                    setTimeout(() => {
+                        document.querySelector(".resourceNotFound").style.display = "none";
+                    }, 3000);
+                }else{
+                    console.log("showing something went wrong");
+                    document.querySelector(".tooManyRequests").style.display = "none";
+                    document.querySelector(".requestSuccess").style.display = "none";
+                    document.querySelector(".resourceNotFound").style.display = "none";
+                    document.querySelector(".somethingWentWrong").style.display = "block";
+                    setTimeout(() => {
+                        document.querySelector(".somethingWentWrong").style.display = "none";
+                    }, 3000);
+                }
+            }).catch(console.error);
+            console.log(ans);
+            } catch (error) {
+                
+            }
+                
+
+                } catch (error) {
+                    
+                }
+            }
+            contact.onerror = ()=> {
+                console.log(contact.error);
+            }
+            
+        });
+    </script> 
+</body>
+</html>
